@@ -117,7 +117,7 @@ app.get("/api/test-connection", async (req, res) => {
   }
 });
 
-app.get("/qr-redirect/:tree_id", async (req, res) => {
+app.get("/api/qr-redirect/:tree_id", async (req, res) => {
   const { tree_id } = req.params;
 
   try {
