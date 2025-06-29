@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Initialize Express with proper typing
+// Initializing Express with proper typing
 const app: express.Application = express();
 app.use(cors());
 app.use(express.json());
@@ -114,6 +114,38 @@ app.get("/api/test-connection", async (req, res) => {
       message: "Supabase connection failed",
       error: err.message,
     });
+  }
+});
+
+app.get("/qr-redirect/:tree_id", async (req, res) => {
+  const { tree_id } = req.params;
+
+  try {
+    // Get the current audio URL from Supabase
+    const { data: audioData, error } = await supabase
+      .from("tree_audio")
+      .select("audio_url")
+      .eq("tree_id", tree_id)
+      .single();
+
+    if (error || !audioData) throw error;
+
+    console.log(audioData.audio_url);
+
+    const audioUrl = `${audioData.audio_url}`;
+
+    // Track the scan
+    await supabase.from("qr_scans").insert({
+      tree_id,
+      scanned_at: new Date().toISOString(),
+      user_agent: req.headers["user-agent"],
+    });
+
+    // Redirect to the audio file
+    res.redirect(302, audioUrl);
+  } catch (err) {
+    console.error("Redirect error:", err);
+    res.redirect(err);
   }
 });
 
